@@ -171,6 +171,10 @@ def atualizar_dashboard(campanha, start_date, end_date, metrica):
 
 
 # === Rodar servidor ===
+import os
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 8050))  # Render define a porta automaticamente
+    app.run(host="0.0.0.0", port=port, debug=True)
+
 
