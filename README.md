@@ -15,7 +15,7 @@ Foi desenvolvido como exemplo de análise de marketing digital, mas pode ser ada
   - Comparativo entre campanhas (métrica escolhível: Cliques, Gasto, CTR, CPC)
 
 ## 🖥️ Demonstração
-➡️ [Acesse o Dashboard Online](https://SEU-LINK-DO-RENDER.onrender.com)
+➡️ [Acesse o Dashboard Online](https://marketing-analytics-dashboard.onrender.com)
 
 ![Exemplo do Dashboard](images/dashboard.png)
 
