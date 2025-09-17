@@ -1,3 +1,9 @@
+
 numpy
 matplotlib
 seaborn
+dash
+plotly
+pandas
+openpyxl
+
