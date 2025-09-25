@@ -5,7 +5,7 @@ import plotly.express as px
 import pandas as pd
 
 # === Carregar dados do Excel ===
-file_path = "relatorio_facebook_ads_2025-09-17.xlsx"
+file_path = "relatorio_facebook_ads_2025-09-25.xlsx"
 df = pd.read_excel(file_path, sheet_name="Campanhas")
 
 # Garantir que a coluna Data é datetime
@@ -176,5 +176,6 @@ import os
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8050))  # Render define a porta automaticamente
     app.run(host="0.0.0.0", port=port, debug=True)
+
 
 
