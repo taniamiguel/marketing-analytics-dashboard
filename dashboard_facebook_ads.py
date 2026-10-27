@@ -21,8 +21,26 @@ for nome in ["Campanha", "Campaign", "campaign_name"]:
 if col_nome is None:
     raise ValueError("❌ Não encontrei nenhuma coluna de Campanha na planilha.")
 
+# === Detectar a coluna de impressões (o cabeçalho pode vir com acento corrompido) ===
+col_impressoes = next((c for c in df.columns if str(c).lower().startswith("impress")), None)
+
+if col_impressoes is None:
+    raise ValueError("❌ Não encontrei nenhuma coluna de Impressões na planilha.")
+
+
+def calcular_ctr(cliques, impressoes):
+    # CTR do período = total de cliques / total de impressões (e não a média dos CTRs diários)
+    return cliques / impressoes * 100 if impressoes else 0
+
+
+def calcular_cpc(gasto, cliques):
+    # CPC do período = gasto total / total de cliques (e não a média dos CPCs diários)
+    return gasto / cliques if cliques else 0
+
+
 # === Criar app ===
 app = dash.Dash(__name__)
+server = app.server  # usado por servidores de produção (ex.: gunicorn)
 app.title = "Dashboard Facebook Ads"
 
 # === Layout ===
@@ -116,8 +134,9 @@ def atualizar_dashboard(campanha, start_date, end_date, metrica):
     # === KPIs ===
     total_gasto = df_filtrado["Gasto (R$)"].sum()
     total_cliques = df_filtrado["Cliques"].sum()
-    ctr_medio = df_filtrado["CTR (%)"].mean()
-    cpc_medio = df_filtrado["CPC (R$)"].mean()
+    total_impressoes = df_filtrado[col_impressoes].sum()
+    ctr_medio = calcular_ctr(total_cliques, total_impressoes)
+    cpc_medio = calcular_cpc(total_gasto, total_cliques)
 
     kpis = [
         html.Div([
@@ -154,9 +173,15 @@ def atualizar_dashboard(campanha, start_date, end_date, metrica):
     )
 
     # === Gráfico comparativo entre campanhas (métrica escolhida) ===
+    # Soma os totais por campanha e só depois calcula as taxas
     df_comp = df_comparativo.groupby(col_nome, as_index=False).agg({
-        metrica: "mean" if "CTR" in metrica or "CPC" in metrica else "sum"
+        col_impressoes: "sum",
+        "Cliques": "sum",
+        "Gasto (R$)": "sum"
     })
+    df_comp["CTR (%)"] = [calcular_ctr(c, i) for c, i in zip(df_comp["Cliques"], df_comp[col_impressoes])]
+    df_comp["CPC (R$)"] = [calcular_cpc(g, c) for g, c in zip(df_comp["Gasto (R$)"], df_comp["Cliques"])]
+    df_comp[metrica] = df_comp[metrica].round(2)
 
     fig_comparativo = px.bar(
         df_comp,
@@ -175,7 +200,8 @@ import os
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8050))  # Render define a porta automaticamente
-    app.run(host="0.0.0.0", port=port, debug=True)
+    debug = os.environ.get("DASH_DEBUG", "false").lower() == "true"  # desligado em produção
+    app.run(host="0.0.0.0", port=port, debug=debug)
 
 
 
